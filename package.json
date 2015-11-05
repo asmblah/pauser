@@ -1,0 +1,37 @@
+{
+  "version": "1.0.0",
+  "name": "pauser",
+  "description": "Wrapper for optional Pausable usage",
+  "keywords": [
+    "pausable"
+  ],
+  "homepage": "https://github.com/asmblah/pauser",
+  "author": "Dan Phillimore <dan@ovms.co> (http://ovms.co)",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/asmblah/pauser"
+  },
+  "bugs": {
+    "email": "dan@ovms.co",
+    "url": "https://github.com/asmblah/pauser/issues"
+  },
+  "main": "index",
+  "scripts": {
+    "jshint": "jshint .",
+    "mocha": "mocha -r test/harness --recursive test/",
+    "test": "npm run jshint && npm run mocha"
+  },
+  "dependencies": {},
+  "devDependencies": {
+    "chai": "^2.3.0",
+    "jshint": "^2.8.0",
+    "mocha": "^2.2.5",
+    "nowdoc": "^1.0.0",
+    "sinon": "~1.15",
+    "sinon-chai": "^2.7.0"
+  },
+  "engines": {
+    "node": ">=0.6"
+  },
+  "license": "MIT"
+}
