@@ -43,6 +43,16 @@ describe('Wrapper', function () {
 
             expect(this.createWrapper().async(this.pausable)).to.equal(123);
         });
+
+        it('should map any args that are instances of Wrapper to their async versions', function () {
+            var otherWrapper = sinon.createStubInstance(Wrapper);
+            otherWrapper.async.returns('my other exports');
+            this.args.push(otherWrapper);
+
+            this.createWrapper().async(this.pausable);
+
+            expect(this.pausable.executeSync).to.have.been.calledWith(['my other exports']);
+        });
     });
 
     describe('sync()', function () {
@@ -62,6 +72,16 @@ describe('Wrapper', function () {
             this.fn.returns('my result');
 
             expect(this.createWrapper().sync()).to.equal('my result');
+        });
+
+        it('should map any args that are instances of Wrapper to their sync versions', function () {
+            var otherWrapper = sinon.createStubInstance(Wrapper);
+            otherWrapper.sync.returns('my other exports');
+            this.args.push(otherWrapper);
+
+            this.createWrapper().sync();
+
+            expect(this.fn).to.have.been.calledWith('my other exports');
         });
     });
 });

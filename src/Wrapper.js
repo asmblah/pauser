@@ -25,9 +25,17 @@ _.extend(Wrapper.prototype, {
      * @returns {*}
      */
     async: function (pausable) {
-        var wrapper = this;
+        var wrapper = this,
+            // Recursively transpile any arguments to the function that are themselves Wrappers
+            args = _.map(wrapper.args, function (arg) {
+                if (arg instanceof Wrapper) {
+                    return arg.async(pausable);
+                }
 
-        return pausable.executeSync(wrapper.args, wrapper.fn, wrapper.options);
+                return arg;
+            });
+
+        return pausable.executeSync(args, wrapper.fn, wrapper.options);
     },
 
     /**
@@ -36,9 +44,17 @@ _.extend(Wrapper.prototype, {
      * @returns {*}
      */
     sync: function () {
-        var wrapper = this;
+        var wrapper = this,
+            // Recursively evaluate any arguments to the function that are themselves Wrappers
+            args = _.map(wrapper.args, function (arg) {
+                if (arg instanceof Wrapper) {
+                    return arg.sync();
+                }
 
-        return wrapper.fn.apply(null, wrapper.args);
+                return arg;
+            });
+
+        return wrapper.fn.apply(null, args);
     }
 });
 
