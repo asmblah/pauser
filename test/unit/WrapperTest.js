@@ -16,6 +16,9 @@ describe('Wrapper', function () {
         this.args = [];
         this.fn = sinon.stub();
         this.options = {};
+        this.pausable = {
+            executeSync: sinon.stub()
+        };
 
         this.createWrapper = function () {
             return new Wrapper(this.args, this.fn, this.options);
@@ -23,12 +26,6 @@ describe('Wrapper', function () {
     });
 
     describe('async()', function () {
-        beforeEach(function () {
-            this.pausable = {
-                executeSync: sinon.stub()
-            };
-        });
-
         it('should call the wrapper via Pausable', function () {
             this.args.push(1, 2, 3);
             this.options.strict = true;
@@ -53,9 +50,51 @@ describe('Wrapper', function () {
 
             expect(this.pausable.executeSync).to.have.been.calledWith(['my other exports']);
         });
+
+        it('should cache the result from fn for future calls', function () {
+            var result1,
+                result2,
+                wrapper;
+
+            this.pausable.executeSync = function (args, fn) {
+                return fn.apply(null, args);
+            };
+            this.fn.onFirstCall().returns('first');
+            this.fn.onSecondCall().returns('second');
+            wrapper = this.createWrapper();
+
+            result1 = wrapper.async(this.pausable);
+            result2 = wrapper.async(this.pausable);
+
+            expect(result2).to.equal(result1);
+            expect(result1).to.equal('first');
+        });
+
+        it('should cache the result from fn for future calls when null', function () {
+            var result1,
+                result2,
+                wrapper;
+
+            this.pausable.executeSync = function (args, fn) {
+                return fn.apply(null, args);
+            };
+            this.fn.onFirstCall().returns(null);
+            this.fn.onSecondCall().returns('second');
+            wrapper = this.createWrapper();
+
+            result1 = wrapper.async(this.pausable);
+            result2 = wrapper.async(this.pausable);
+
+            expect(result2).to.equal(result1);
+            expect(result1).to.be.null;
+        });
     });
 
     describe('sync()', function () {
+        beforeEach(function () {
+            delete this.pausable;
+        });
+
         it('should call the wrapper function', function () {
             this.createWrapper().sync();
 
@@ -82,6 +121,59 @@ describe('Wrapper', function () {
             this.createWrapper().sync();
 
             expect(this.fn).to.have.been.calledWith('my other exports');
+        });
+
+        it('should cache the result from fn for future calls', function () {
+            var result1,
+                result2,
+                wrapper;
+
+            this.fn.onFirstCall().returns('first');
+            this.fn.onSecondCall().returns('second');
+            wrapper = this.createWrapper();
+
+            result1 = wrapper.sync();
+            result2 = wrapper.sync();
+
+            expect(result2).to.equal(result1);
+            expect(result1).to.equal('first');
+        });
+
+        it('should cache the result from fn for future calls when null', function () {
+            var result1,
+                result2,
+                wrapper;
+
+            this.fn.onFirstCall().returns(null);
+            this.fn.onSecondCall().returns('second');
+            wrapper = this.createWrapper();
+
+            result1 = wrapper.sync();
+            result2 = wrapper.sync();
+
+            expect(result2).to.equal(result1);
+            expect(result1).to.be.null;
+        });
+    });
+
+    describe('async() and sync()', function () {
+        it('should not share exports between each other', function () {
+            var result1,
+                result2,
+                wrapper;
+
+            this.pausable.executeSync = function (args, fn) {
+                return fn.apply(null, args);
+            };
+            this.fn.onFirstCall().returns('first');
+            this.fn.onSecondCall().returns('second');
+            wrapper = this.createWrapper();
+
+            result1 = wrapper.async(this.pausable);
+            result2 = wrapper.sync();
+
+            expect(result1).to.equal('first');
+            expect(result2).to.equal('second');
         });
     });
 });

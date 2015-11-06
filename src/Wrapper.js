@@ -13,8 +13,12 @@ var _ = require('microdash');
 
 function Wrapper(args, fn, options) {
     this.args = args;
+    this.evaluatedAsync = false;
+    this.evaluatedSync = false;
+    this.asyncReturnValue = null;
     this.fn = fn;
     this.options = options;
+    this.syncReturnValue = null;
 }
 
 _.extend(Wrapper.prototype, {
@@ -25,17 +29,26 @@ _.extend(Wrapper.prototype, {
      * @returns {*}
      */
     async: function (pausable) {
-        var wrapper = this,
-            // Recursively transpile any arguments to the function that are themselves Wrappers
-            args = _.map(wrapper.args, function (arg) {
-                if (arg instanceof Wrapper) {
-                    return arg.async(pausable);
-                }
+        var args,
+            wrapper = this;
 
-                return arg;
-            });
+        if (wrapper.evaluatedAsync) {
+            return wrapper.asyncReturnValue;
+        }
 
-        return pausable.executeSync(args, wrapper.fn, wrapper.options);
+        // Recursively transpile any arguments to the function that are themselves Wrappers
+        args = _.map(wrapper.args, function (arg) {
+            if (arg instanceof Wrapper) {
+                return arg.async(pausable);
+            }
+
+            return arg;
+        });
+
+        wrapper.asyncReturnValue = pausable.executeSync(args, wrapper.fn, wrapper.options);
+        wrapper.evaluatedAsync = true;
+
+        return wrapper.asyncReturnValue;
     },
 
     /**
@@ -44,17 +57,26 @@ _.extend(Wrapper.prototype, {
      * @returns {*}
      */
     sync: function () {
-        var wrapper = this,
-            // Recursively evaluate any arguments to the function that are themselves Wrappers
-            args = _.map(wrapper.args, function (arg) {
-                if (arg instanceof Wrapper) {
-                    return arg.sync();
-                }
+        var args,
+            wrapper = this;
 
-                return arg;
-            });
+        if (wrapper.evaluatedSync) {
+            return wrapper.syncReturnValue;
+        }
 
-        return wrapper.fn.apply(null, args);
+        // Recursively evaluate any arguments to the function that are themselves Wrappers
+        args = _.map(wrapper.args, function (arg) {
+            if (arg instanceof Wrapper) {
+                return arg.sync();
+            }
+
+            return arg;
+        });
+
+        wrapper.syncReturnValue = wrapper.fn.apply(null, args);
+        wrapper.evaluatedSync = true;
+
+        return wrapper.syncReturnValue;
     }
 });
 
