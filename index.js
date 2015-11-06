@@ -9,25 +9,8 @@
 
 'use strict';
 
-module.exports = function (args, wrapper, options) {
-    return {
-        /**
-         * Executes wrapper asynchronously via the Pausable library.
-         *
-         * @param {Pausable} pausable
-         * @returns {*}
-         */
-        async: function (pausable) {
-            return pausable.executeSync(args, wrapper, options);
-        },
+var Wrapper = require('./src/Wrapper');
 
-        /**
-         * Executes wrapper synchronously when the Pausable library is not available.
-         *
-         * @returns {*}
-         */
-        sync: function () {
-            return wrapper.apply(null, args);
-        }
-    };
+module.exports = function (args, wrapper, options) {
+    return new Wrapper(args, wrapper, options);
 };

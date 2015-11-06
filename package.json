@@ -21,7 +21,9 @@
     "mocha": "mocha -r test/harness --recursive test/",
     "test": "npm run jshint && npm run mocha"
   },
-  "dependencies": {},
+  "dependencies": {
+    "microdash": "~1"
+  },
   "devDependencies": {
     "chai": "^2.3.0",
     "jshint": "^2.8.0",

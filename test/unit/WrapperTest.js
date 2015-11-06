@@ -9,21 +9,17 @@
 
 'use strict';
 
-var pauser = require('../..');
+var Wrapper = require('../../src/Wrapper');
 
-describe('Pauser', function () {
+describe('Wrapper', function () {
     beforeEach(function () {
         this.args = [];
-        this.wrapper = sinon.stub();
+        this.fn = sinon.stub();
         this.options = {};
 
-        this.callPauser = function () {
-            return pauser(this.args, this.wrapper, this.options);
+        this.createWrapper = function () {
+            return new Wrapper(this.args, this.fn, this.options);
         }.bind(this);
-    });
-
-    it('should return an object', function () {
-        expect(pauser()).to.be.an('object');
     });
 
     describe('async()', function () {
@@ -37,35 +33,35 @@ describe('Pauser', function () {
             this.args.push(1, 2, 3);
             this.options.strict = true;
 
-            this.callPauser().async(this.pausable);
+            this.createWrapper().async(this.pausable);
 
-            expect(this.pausable.executeSync).to.have.been.calledWith(this.args, this.wrapper, this.options);
+            expect(this.pausable.executeSync).to.have.been.calledWith(this.args, this.fn, this.options);
         });
 
         it('should return the result from Pausable', function () {
             this.pausable.executeSync.returns(123);
 
-            expect(this.callPauser().async(this.pausable)).to.equal(123);
+            expect(this.createWrapper().async(this.pausable)).to.equal(123);
         });
     });
 
     describe('sync()', function () {
         it('should call the wrapper function', function () {
-            this.callPauser().sync();
+            this.createWrapper().sync();
 
-            expect(this.wrapper).to.have.been.calledOnce;
+            expect(this.fn).to.have.been.calledOnce;
         });
 
         it('should use null as the wrapper function\'s thisArg', function () {
-            this.callPauser().sync();
+            this.createWrapper().sync();
 
-            expect(this.wrapper).to.have.been.calledOn(null);
+            expect(this.fn).to.have.been.calledOn(null);
         });
 
         it('should return the result from the wrapper function', function () {
-            this.wrapper.returns('my result');
+            this.fn.returns('my result');
 
-            expect(this.callPauser().sync()).to.equal('my result');
+            expect(this.createWrapper().sync()).to.equal('my result');
         });
     });
 });
